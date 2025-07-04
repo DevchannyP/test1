@@ -1,40 +1,56 @@
 "use client";
 
-import { useState } from "react";
-import { useAuthStore } from "@/store/authStore";
 import { loginWithEmail } from "@/libs/api/auth.api";
+import { useAuthStore } from "@/store/authStore";
 import { useMutation } from "@tanstack/react-query";
-import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 
-// 로그인 폼 컴포넌트 (실무 최적화)
+// [실무] 로그인 폼 (시안·UX·실전 모두 반영)
 export default function LoginForm() {
   const { setUser } = useAuthStore();
-  const [email, setEmail] = useState("");
+  const [userid, setUserid] = useState(""); // 아이디 or 이메일
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // 로그인 요청 뮤테이션
+  // 최초 렌더시 아이디 input에 자동 포커스
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  // [실무] 로그인 요청(React Query Mutation)
   const loginMutation = useMutation({
-    mutationFn: () => loginWithEmail(email, password),
+    mutationFn: () => loginWithEmail(userid.trim(), password),
     onSuccess: (res) => {
       setUser(res.user);
-      // JWT 토큰 로컬스토리지/쿠키 저장 (실무 예시)
-      localStorage.setItem("accessToken", res.accessToken);
-      window.location.href = "/dashboard"; // 메인 이동
+      window.location.href = "/dashboard";
     },
     onError: (err: any) => {
-      // 보안상 에러 메시지는 단순화, 상세 로깅은 콘솔/모니터링으로 분리
       setError(
-        err?.response?.data?.message ||
-          "이메일 또는 비밀번호가 올바르지 않습니다."
+        typeof err?.message === "string"
+          ? err.message
+          : "아이디 또는 비밀번호가 올바르지 않습니다."
       );
+      if (process.env.NODE_ENV === "development") {
+        // eslint-disable-next-line no-console
+        console.error("로그인 실패:", err);
+      }
     },
   });
 
-  // 입력 핸들러, 엔터 키 로그인 지원
+  // [UX] 기본 입력 검증 (4자 이상)
+  const isIdValid = userid.length >= 4;
+  const isPwValid = password.length >= 4;
+
+  // [핸들러] 엔터로 바로 로그인
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && !loginMutation.isLoading) {
+    if (
+      e.key === "Enter" &&
+      !loginMutation.isLoading &&
+      isIdValid &&
+      isPwValid
+    ) {
       loginMutation.mutate();
     }
   };
@@ -43,25 +59,33 @@ export default function LoginForm() {
     <form
       className="w-full max-w-xs mx-auto flex flex-col space-y-3"
       autoComplete="on"
+      aria-label="로그인 입력 폼"
       onSubmit={(e) => {
         e.preventDefault();
-        if (!loginMutation.isLoading) loginMutation.mutate();
+        if (!loginMutation.isLoading && isIdValid && isPwValid) {
+          loginMutation.mutate();
+        }
       }}
     >
+      {/* 아이디 입력 */}
       <input
-        className="border rounded-lg px-4 py-3 mb-2 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+        ref={inputRef}
+        className="border border-gray-200 rounded-xl px-4 py-3 mb-2 bg-gray-50 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-300"
         type="text"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        value={userid}
+        onChange={(e) => setUserid(e.target.value)}
         placeholder="아이디를 입력하세요"
         autoComplete="username"
-        aria-label="이메일"
+        aria-label="아이디"
         required
+        maxLength={50}
         onKeyDown={handleKeyDown}
       />
+
+      {/* 비밀번호 입력 */}
       <div className="relative">
         <input
-          className="border rounded-lg px-4 py-3 mb-2 w-full focus:outline-none focus:ring-2 focus:ring-yellow-300"
+          className="border border-gray-200 rounded-xl px-4 py-3 mb-2 w-full bg-gray-50 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-300"
           type={showPw ? "text" : "password"}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -69,34 +93,36 @@ export default function LoginForm() {
           autoComplete="current-password"
           aria-label="비밀번호"
           required
+          maxLength={50}
           onKeyDown={handleKeyDown}
         />
         <button
           type="button"
           tabIndex={-1}
-          className="absolute right-2 top-3 text-xs text-gray-500"
+          className="absolute right-3 top-3 text-xs text-gray-400 hover:text-gray-600 transition"
           onClick={() => setShowPw((v) => !v)}
           aria-label={showPw ? "비밀번호 숨기기" : "비밀번호 보이기"}
         >
           {showPw ? "숨김" : "보기"}
         </button>
       </div>
-      {error && <div className="text-red-500 text-sm">{error}</div>}
+
+      {/* 에러 메시지 */}
+      {error && (
+        <div className="text-red-500 text-xs mt-1 min-h-[18px]" role="alert">
+          {error}
+        </div>
+      )}
+
+      {/* 로그인 버튼 */}
       <button
         type="submit"
-        className="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-2 rounded-lg mt-1 disabled:opacity-60"
-        disabled={loginMutation.isLoading}
+        className="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-3 rounded-xl mt-1 transition disabled:opacity-60 text-base"
+        disabled={loginMutation.isLoading || !isIdValid || !isPwValid}
+        aria-disabled={loginMutation.isLoading || !isIdValid || !isPwValid}
       >
         {loginMutation.isLoading ? "로그인 중..." : "로그인"}
       </button>
-      <div className="flex justify-between text-xs text-gray-600 pt-2">
-        <Link href="/auth/find-id" className="hover:underline">
-          아이디 찾기
-        </Link>
-        <Link href="/auth/find-password" className="hover:underline">
-          비밀번호 찾기
-        </Link>
-      </div>
     </form>
   );
 }

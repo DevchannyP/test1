@@ -1,0 +1,45 @@
+# -----------------------
+# 1. 빌드 스테이지
+# -----------------------
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# 종속성 설치 (package.json, lock파일 복사)
+COPY frontend/package.json frontend/package-lock.json* ./ 
+RUN npm install
+
+# 모든 소스 복사
+COPY frontend/ .
+
+# Next.js 빌드
+RUN npm run build
+
+# -----------------------
+# 2. 런타임(실행) 스테이지
+# -----------------------
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV production
+
+# production 종속성만 설치
+COPY frontend/package.json frontend/package-lock.json* ./ 
+RUN npm install --omit=dev
+
+# 빌드 결과, .next, public, .env 등만 복사
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/next.config.js ./next.config.js
+COPY --from=builder /app/styles ./styles
+
+# 필요한 경우 .env.production 등 복사
+# COPY --from=builder /app/.env.production ./.env.production
+
+EXPOSE 3000
+
+# Next.js App 실행
+CMD ["npm", "run", "start"]

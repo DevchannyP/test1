@@ -1,12 +1,25 @@
-// frontend/app/providers.tsx
 "use client";
 
+import { queryClient } from "@/libs/react-query/queryClient";
+import { Hydrate, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ReactNode } from "react";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { queryClient } from "@/libs/react-query/queryClient"; // ✅ 여기 있음
 
-export default function Providers({ children }: { children: ReactNode }) {
+export default function Providers({
+  children,
+  dehydratedState,
+}: {
+  children: ReactNode;
+  dehydratedState?: unknown;
+}) {
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <Hydrate state={dehydratedState}>
+        {children}
+        {process.env.NODE_ENV === "development" && (
+          <ReactQueryDevtools initialIsOpen={false} />
+        )}
+      </Hydrate>
+    </QueryClientProvider>
   );
 }

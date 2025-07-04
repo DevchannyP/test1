@@ -1,0 +1,23 @@
+# builder 단계
+FROM gradle:8.7.0-jdk17-alpine AS builder
+WORKDIR /app
+
+# Gradle 캐시 미리 복사 (optional 성능 향상)
+COPY --chown=gradle:gradle backend/gradle backend/gradle
+COPY --chown=gradle:gradle backend/build.gradle.kts backend/settings.gradle.kts ./
+
+# 필요시 JAVA_TOOL_OPTIONS 설정 (Gradle Toolchain 충돌 회피)
+ENV JAVA_TOOL_OPTIONS="-Xmx1g"
+
+RUN gradle clean build --no-daemon || return 0  # ✅ 캐싱 준비
+
+# 전체 복사
+COPY --chown=gradle:gradle backend/ .
+
+RUN gradle build --no-daemon
+
+# 실행 이미지 단계
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+COPY --from=builder /app/build/libs/*.jar app.jar
+ENTRYPOINT ["java", "-jar", "app.jar"]

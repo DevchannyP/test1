@@ -16,12 +16,32 @@
     "moduleResolution": "Node",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    // ✅ Next.js (React 18 이상) 기반 권장
     "jsx": "preserve",
+    // ✅ 절대 경로 alias 설정
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/app/*": [
+        "app/*"
+      ],
+      "@/components/*": [
+        "components/*"
+      ],
+      "@/libs/*": [
+        "libs/*"
+      ],
+      "@/store/*": [
+        "store/*"
+      ],
+      "@/styles/*": [
+        "styles/*"
+      ],
+      "@/public/*": [
+        "public/*"
+      ],
+      "@/types/*": [
+        "types/*"
+      ] // 추후 타입 분리 시 대비
     },
     "incremental": true,
     "plugins": [
@@ -31,9 +51,9 @@
     ]
   },
   "include": [
+    "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "next-env.d.ts",
     ".next/types/**/*.ts"
   ],
   "exclude": [
