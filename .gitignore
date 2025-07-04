@@ -80,6 +80,12 @@ docker-compose.override.yml
 *.env.docker
 *.env.staging
 
+# ✅ Docker 설정 파일 명시적 추적 허용
+!docker/docker-compose.yml
+!docker/Dockerfile.backend
+!docker/Dockerfile.frontend
+
+
 # ========================
 # 🧪 테스트 / 리포트
 # ========================
