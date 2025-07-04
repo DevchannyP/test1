@@ -1,0 +1,100 @@
+# ========================
+# 📦 공통 무시 항목
+# ========================
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+*.hprof
+
+# ========================
+# 🧠 IDE / 설정 / 시스템
+# ========================
+.vscode/
+.idea/
+*.iml
+*.sublime*
+
+# ========================
+# 🔧 Frontend (Next.js, Node.js)
+# ========================
+node_modules/
+.next/
+out/
+dist/
+coverage/
+test-results/
+
+# 환경 변수 파일
+.env
+.env.*
+.env.local
+
+# 로그 파일
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ========================
+# 🧩 Backend (Spring Boot + Gradle)
+# ========================
+# 빌드 출력
+backend/build/
+backend/out/
+backend/target/
+*.class
+*.jar
+*.war
+
+# Gradle 관련
+.gradle/
+**/build/
+**/generated/
+!**/gradle-wrapper.jar
+
+# Kotlin Annotation Processing
+**/generated/
+
+# ========================
+# 🚫 대용량 파일 / 배포물
+# ========================
+*.zip
+*.tar
+*.gz
+*.7z
+*.bin
+*.exe
+
+# 배포 디렉토리
+/backend/build/distributions/
+
+# ========================
+# 🐳 Docker & 배포
+# ========================
+docker-compose.override.yml
+*.env.production
+*.env.docker
+*.env.staging
+
+# ========================
+# 🧪 테스트 / 리포트
+# ========================
+jacoco.exec
+test-output/
+
+# ========================
+# 🎨 Git 관련 / LFS
+# ========================
+*.lfs
+*.psd
+*.ai
+*.sketch
+
+# ========================
+# ✅ 예외적으로 추적할 항목
+# ========================
+!**/.gitkeep

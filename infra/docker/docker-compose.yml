@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: jibangyoung-mysql
+    ports:
+      - "3307:3306" # ✅ 외부 포트를 3307로 변경
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: jibangyoung
+      MYSQL_USER: devuser
+      MYSQL_PASSWORD: devpass
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - jibangyoung-net
+
+  redis:
+    image: redis:7
+    container_name: jibangyoung-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - jibangyoung-net
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.10.2
+    container_name: jibangyoung-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    networks:
+      - jibangyoung-net
+
+volumes:
+  mysql_data:
+
+networks:
+  jibangyoung-net:
